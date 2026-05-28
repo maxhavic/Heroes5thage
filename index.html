@@ -266,16 +266,45 @@
         <label>Character Name</label>
         <input id="charName" placeholder="Character Name" />
 
-        <label>Culture</label>
-        <select id="culture">
-          <option>Dwarf</option>
-          <option>Elf</option>
-          <option>Human</option>
-          <option>Kötkin</option>
-          <option>Orken</option>
-          <option>Serpentas</option>
-          <option>Ulfhediné</option>
+        <label>Ancestry</label>
+        <select id="ancestry" onchange="handleAncestryChange()">
+          <option value="human">Human</option>
+          <option value="dwarf">Dwarf</option>
+          <option value="elf">Elf</option>
+          <option value="kotkin">Kötkin</option>
+          <option value="orken">Orken</option>
+          <option value="serpentas">Serpentas</option>
+          <option value="ulfhedine">Ulfhediné</option>
         </select>
+
+        <div id="humanBonusChoices" class="grid grid-3" style="margin-top:12px;">
+          <div>
+            <label>Human Bonus 1</label>
+            <select id="humanBonusOne" onchange="updateSheet()"></select>
+          </div>
+          <div>
+            <label>Human Bonus 2</label>
+            <select id="humanBonusTwo" onchange="updateSheet()"></select>
+          </div>
+        </div>
+
+        <label>Cultural Trait</label>
+        <select id="culturalTrait" onchange="updateSheet()"></select>
+
+        <div class="stat" style="margin-top:12px;">
+          <div class="label">Ancestral Trait</div>
+          <div id="ancestralTraitDisplay" class="muted"></div>
+        </div>
+
+        <div class="stat" style="margin-top:12px;">
+          <div class="label">Languages</div>
+          <div id="languagesDisplay" class="muted"></div>
+        </div>
+
+        <div class="stat" style="margin-top:12px;">
+          <div class="label">Starting Equipment</div>
+          <div id="startingEquipmentDisplay" class="muted"></div>
+        </div>
       </div>
 
       <div class="card">
@@ -499,6 +528,67 @@
   <script>
 
 
+    const ANCESTRIES = {
+      dwarf: {
+        name: "Dwarf",
+        bonuses: { brawn: 1, reasoning: 1 },
+        ancestralTrait: "Stoneblood Endurance",
+        languages: ["Common", "Stone Tongue"],
+        culturalTraits: ["Path of the Dwarf", "Mountain’s Bulwark", "Dwarven Resilience", "Earth Sense", "Forgeheart", "Tunnel Fighter", "Earth’s Insight"],
+        startingEquipment: "Hammer or battle axe, hand axe or dagger, chain shirt, dwarven iron shield, miner’s pick or smith’s tools, lantern with oil."
+      },
+      elf: {
+        name: "Elf",
+        bonuses: { coordination: 1, intellect: 1 },
+        ancestralTrait: "Keen Vision",
+        languages: ["Common", "Elder Speech"],
+        culturalTraits: ["Greenland Sight", "Ethereal Presence", "Ancient Wisdom", "Nature’s Whisper", "Shadowmeld", "Arcane Affinity"],
+        startingEquipment: "Longbow or spear, shortsword or dagger, leather or hide armor, fletching kit, pouch of herbs, forest or ruin trinket."
+      },
+      human: {
+        name: "Human",
+        bonuses: {},
+        ancestralTrait: "Versatility",
+        languages: ["Common", "One bonus language"],
+        culturalTraits: ["Fields of Iron", "Blood of the Peaks", "Shadows of the Street", "Children of the Sun", "Temple-Born", "Adaptable Mind", "Resourceful Resilience", "Crowd Instincts"],
+        startingEquipment: "One martial weapon, dagger, leather armor, optional shield, tools based on upbringing."
+      },
+      kotkin: {
+        name: "Kötkin",
+        bonuses: { coordination: 1, power: 1 },
+        ancestralTrait: "Shadowstep Grace",
+        languages: ["Common", "Twilight Cant"],
+        culturalTraits: ["Shadow Pounce", "Night Hunter", "Whisker Sense", "Veil Dancer", "Feline Agility", "Moonlit Dash", "Predator’s Intuition"],
+        startingEquipment: "Paired curved daggers or shortswords, throwing knives or hand crossbow, shadow-leather armor, climbing hooks or rope, mirror or obsidian shard, moonlit charm."
+      },
+      orken: {
+        name: "Orken",
+        bonuses: { brawn: 1, will: 1 },
+        ancestralTrait: "Bloodfire Surge",
+        languages: ["Common", "Orkish"],
+        culturalTraits: ["Run Like the Wind", "Ferocious Charge", "Ironhide Resilience", "Berserker Discipline", "Savage Instincts", "Brutal Intimidation"],
+        startingEquipment: "Greataxe, heavy club, or spear, knife, hide armor, optional crude shield, trophy tokens, survival tools."
+      },
+      serpentas: {
+        name: "Serpentas",
+        bonuses: { reasoning: 1, power: 1 },
+        ancestralTrait: "Cold-Blooded Logic",
+        languages: ["Common", "Serpentine"],
+        culturalTraits: ["Snake Bite", "Venomous Legacy", "Mystic Channeling", "Serpent’s Senses", "Scales of Protection", "Eldritch Warding", "Desert Affinity"],
+        startingEquipment: "Scimitar or spear, dagger, scaled leather armor, buckler or small round shield, ritual charm, desert survival kit."
+      },
+      ulfhedine: {
+        name: "Ulfhediné",
+        bonuses: { brawn: 1, power: 1 },
+        ancestralTrait: "Blood of the Beast",
+        languages: ["Common", "Ulfspeech"],
+        culturalTraits: ["Wild Sense", "Alpha Instincts", "Pack Tactics", "Beastmaster’s Bond", "Savage Resilience", "Moonlit Howl", "Warden of the Wilds"],
+        startingEquipment: "Spear or hand axe, hunting knife, hide or fur armor, animal totem charm, hunting horn."
+      }
+    };
+
+    const ATTRIBUTE_IDS = ["brawn", "coordination", "intellect", "reasoning", "will", "power"];
+
     const TALENTS = [
       { name: "Action Point Reserve", prerequisites: "Any Arts Skill 2+; Attribute 4+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Increase maximum AP by +1 per rank." },
       { name: "Acute Hearing", prerequisites: "None", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 to Awareness and Investigation involving sound; +1 Passive Awareness when hearing applies." },
@@ -616,23 +706,23 @@
     }
 
     function getMaxHP() {
-      return (getNumber('brawn') + getNumber('coordination')) * 2 + getPassiveTalentBonus('Inner Reserve', 5);
+      return (getAttribute('brawn') + getAttribute('coordination')) * 2 + getPassiveTalentBonus('Inner Reserve', 5);
     }
 
     function getGearSlots() {
-      return Math.min(10 + getNumber('brawn') + getPassiveTalentBonus('Portage', 3), 30);
+      return Math.min(10 + getAttribute('brawn') + getPassiveTalentBonus('Portage', 3), 30);
     }
 
     function getArcaneSP() {
-      return getNumber('arcaneArts') + getNumber('power') + getPassiveTalentBonus('Arcane Reserve', 4);
+      return getNumber('arcaneArts') + getAttribute('power') + getPassiveTalentBonus('Arcane Reserve', 4);
     }
 
     function getDivineSP() {
-      return getNumber('divineArts') + getNumber('power') + getPassiveTalentBonus('Divine Reserve', 4);
+      return getNumber('divineArts') + getAttribute('power') + getPassiveTalentBonus('Divine Reserve', 4);
     }
 
     function getKiPoints() {
-      return getNumber('combatArts') + getNumber('power') + getPassiveTalentBonus('Ki Reserve', 2);
+      return getNumber('combatArts') + getAttribute('power') + getPassiveTalentBonus('Ki Reserve', 2);
     }
 
     function renderTalentPicker() {
@@ -817,6 +907,97 @@
       power: "Power"
     };
 
+    function getCurrentAncestryKey() {
+      const select = document.getElementById('ancestry');
+      return select && ANCESTRIES[select.value] ? select.value : 'human';
+    }
+
+    function getCurrentAncestry() {
+      return ANCESTRIES[getCurrentAncestryKey()];
+    }
+
+    function renderHumanBonusSelectors() {
+      ['humanBonusOne', 'humanBonusTwo'].forEach(function(id, index) {
+        const select = document.getElementById(id);
+        if (!select) return;
+
+        if (!select.options.length) {
+          ATTRIBUTE_IDS.forEach(function(attributeId) {
+            const option = document.createElement('option');
+            option.value = attributeId;
+            option.textContent = ATTRIBUTE_LABELS[attributeId];
+            select.appendChild(option);
+          });
+        }
+
+        if (index === 0 && !select.value) select.value = 'brawn';
+        if (index === 1 && !select.value) select.value = 'coordination';
+      });
+    }
+
+    function getAncestryBonus(attributeId) {
+      const ancestryKey = getCurrentAncestryKey();
+      const ancestry = getCurrentAncestry();
+
+      if (ancestryKey === 'human') {
+        const first = document.getElementById('humanBonusOne')?.value;
+        const second = document.getElementById('humanBonusTwo')?.value;
+        let bonus = 0;
+        if (first === attributeId) bonus++;
+        if (second === attributeId && second !== first) bonus++;
+        return bonus;
+      }
+
+      return Number(ancestry.bonuses && ancestry.bonuses[attributeId] ? ancestry.bonuses[attributeId] : 0);
+    }
+
+    function getAttribute(attributeId) {
+      return getNumber(attributeId) + getAncestryBonus(attributeId);
+    }
+
+    function renderCulturalTraitOptions(preserveSelection = true) {
+      const select = document.getElementById('culturalTrait');
+      if (!select) return;
+
+      const previous = preserveSelection ? select.value : '';
+      const ancestry = getCurrentAncestry();
+      select.innerHTML = '';
+
+      ancestry.culturalTraits.forEach(function(traitName) {
+        const option = document.createElement('option');
+        option.value = traitName;
+        option.textContent = traitName;
+        select.appendChild(option);
+      });
+
+      if (previous && ancestry.culturalTraits.includes(previous)) {
+        select.value = previous;
+      }
+    }
+
+    function updateAncestryDisplay() {
+      const ancestryKey = getCurrentAncestryKey();
+      const ancestry = getCurrentAncestry();
+      const humanChoices = document.getElementById('humanBonusChoices');
+
+      if (humanChoices) {
+        humanChoices.style.display = ancestryKey === 'human' ? 'grid' : 'none';
+      }
+
+      const ancestralTrait = document.getElementById('ancestralTraitDisplay');
+      const languages = document.getElementById('languagesDisplay');
+      const equipment = document.getElementById('startingEquipmentDisplay');
+
+      if (ancestralTrait) ancestralTrait.innerText = ancestry.ancestralTrait;
+      if (languages) languages.innerText = ancestry.languages.join(', ');
+      if (equipment) equipment.innerText = ancestry.startingEquipment;
+    }
+
+    function handleAncestryChange() {
+      renderCulturalTraitOptions(false);
+      updateSheet();
+    }
+
     function renderSkillRanks() {
       const grid = document.getElementById('skillRankGrid');
       grid.innerHTML = '';
@@ -873,7 +1054,7 @@
     }
 
     function rollSkill(label, attributeId, skillId) {
-      const attribute = getNumber(attributeId);
+      const attribute = ATTRIBUTE_IDS.includes(attributeId) ? getAttribute(attributeId) : getNumber(attributeId);
       const skillRank = getNumber(skillId);
       const pool = attribute + skillRank;
       const trained = skillRank > 0;
@@ -964,7 +1145,13 @@
         savedAt: new Date().toISOString(),
         identity: {
           name: document.getElementById('charName')?.value || "",
-          culture: document.getElementById('culture')?.value || ""
+          ancestry: document.getElementById('ancestry')?.value || "human",
+          humanBonusOne: document.getElementById('humanBonusOne')?.value || "brawn",
+          humanBonusTwo: document.getElementById('humanBonusTwo')?.value || "coordination",
+          ancestralTrait: getCurrentAncestry().ancestralTrait,
+          culturalTrait: document.getElementById('culturalTrait')?.value || "",
+          languages: getCurrentAncestry().languages || [],
+          startingEquipment: getCurrentAncestry().startingEquipment || ""
         },
         attributes: {
           brawn: getNumber('brawn'),
@@ -997,8 +1184,38 @@
           document.getElementById('charName').value = data.identity.name || "";
         }
 
-        if (document.getElementById('culture') && data.identity.culture) {
-          document.getElementById('culture').value = data.identity.culture;
+        const ancestryValue = data.identity.ancestry || (data.identity.culture || "Human").toLowerCase().replace("ö", "o").replace("é", "e");
+        const ancestryAliases = {
+          dwarf: "dwarf",
+          elf: "elf",
+          human: "human",
+          kotkin: "kotkin",
+          kötkin: "kotkin",
+          orken: "orken",
+          serpentas: "serpentas",
+          ulfhedine: "ulfhedine",
+          ulfhediné: "ulfhedine"
+        };
+        const ancestryKey = ancestryAliases[ancestryValue] || "human";
+
+        if (document.getElementById('ancestry')) {
+          document.getElementById('ancestry').value = ancestryKey;
+        }
+
+        renderHumanBonusSelectors();
+
+        if (document.getElementById('humanBonusOne')) {
+          document.getElementById('humanBonusOne').value = data.identity.humanBonusOne || "brawn";
+        }
+
+        if (document.getElementById('humanBonusTwo')) {
+          document.getElementById('humanBonusTwo').value = data.identity.humanBonusTwo || "coordination";
+        }
+
+        renderCulturalTraitOptions(false);
+
+        if (document.getElementById('culturalTrait') && data.identity.culturalTrait) {
+          document.getElementById('culturalTrait').value = data.identity.culturalTrait;
         }
       }
 
@@ -1117,7 +1334,11 @@
       localStorage.removeItem(SAVE_KEY);
 
       document.getElementById('charName').value = "";
-      document.getElementById('culture').value = "Human";
+      document.getElementById('ancestry').value = "human";
+      renderHumanBonusSelectors();
+      document.getElementById('humanBonusOne').value = "brawn";
+      document.getElementById('humanBonusTwo').value = "coordination";
+      renderCulturalTraitOptions(false);
 
       ["brawn", "coordination", "intellect", "reasoning", "will", "power"].forEach(function(id) {
         document.getElementById(id).value = 4;
@@ -1196,17 +1417,19 @@
     }
 
     function updateSheet() {
-      const brawn = getNumber('brawn');
-      const coordination = getNumber('coordination');
-      const intellect = getNumber('intellect');
-      const reasoning = getNumber('reasoning');
-      const will = getNumber('will');
+      const brawn = getAttribute('brawn');
+      const coordination = getAttribute('coordination');
+      const intellect = getAttribute('intellect');
+      const reasoning = getAttribute('reasoning');
+      const will = getAttribute('will');
       const combatArts = getNumber('combatArts');
       const arcaneArts = getNumber('arcaneArts');
       const divineArts = getNumber('divineArts');
       const awareness = getNumber('awareness');
       const physicalTraining = getNumber('physicalTraining');
       const insight = getNumber('insight');
+
+      updateAncestryDisplay();
 
       document.getElementById('hp').innerText = getMaxHP();
       document.getElementById('slots').innerText = getGearSlots() + ' / 30';
@@ -1219,7 +1442,7 @@
         const poolElement = document.getElementById(skill.id + '_' + skill.attribute + '_pool');
         if (!poolElement) return;
 
-        const pool = getNumber(skill.attribute) + getNumber(skill.id);
+        const pool = getAttribute(skill.attribute) + getNumber(skill.id);
         poolElement.innerText = 'Pool: ' + pool + 'd10';
       });
 
@@ -1229,6 +1452,8 @@
       updateAPDisplay();
     }
 
+    renderHumanBonusSelectors();
+    renderCulturalTraitOptions(false);
     renderSkillRanks();
     renderSkillRolls();
     renderTalentPicker();
