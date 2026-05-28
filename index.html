@@ -212,6 +212,35 @@
       font-size: 14px;
     }
 
+
+    .roll-control {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .roll-bonus-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      color: #cbd5e1;
+      font-size: 13px;
+    }
+
+    .roll-bonus-row label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .roll-bonus-row input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+      padding: 0;
+    }
+
     .resource-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -315,8 +344,9 @@
             <div id="hp" class="big">16</div>
           </div>
           <div class="stat">
-            <div class="label">Max AP</div>
+            <div class="label">Base AP</div>
             <input id="actionPoints" type="number" value="5" min="0" max="20" onchange="syncCurrentAPToMax()" />
+            <div class="muted">Effective Max AP: <span id="effectiveMaxAP">5</span></div>
           </div>
           <div class="stat">
             <div class="label">Move</div>
@@ -337,6 +367,10 @@
             <div class="label">Ki Points</div>
             <div id="kiPoints" class="big">0</div>
           </div>
+        </div>
+        <div class="stat" style="margin-top:12px;">
+          <div class="label">Passive Talent Automation</div>
+          <div id="passiveTalentSummary" class="muted">No passive stat talents selected.</div>
         </div>
       </div>
 
@@ -452,24 +486,70 @@
       <div id="selectedTalents" class="talent-list" style="margin-top:16px;"></div>
     </div>
 
+    <div class="card">
+      <h2>Limited Use Bonuses</h2>
+      <p class="muted">Check a limited-use ability to add its dice to your next roll. After the roll, that ability is marked used until you reset its timing.</p>
+      <div class="ap-button-row">
+        <button onclick="resetLimitedUses('scene')">Reset Scene Uses</button>
+        <button onclick="resetLimitedUses('combat')">Reset Combat Uses</button>
+        <button onclick="resetLimitedUses('day')">Reset Day Uses</button>
+        <button onclick="resetLimitedUses('longRest')">Reset Long Rest Uses</button>
+      </div>
+      <div id="limitedUseList" class="talent-list" style="margin-top:16px;"></div>
+    </div>
+
     <div class="grid grid-3">
       <div class="card">
         <h2>Combat</h2>
 
-        <button class="button-red" style="width:100%; margin-bottom:10px;" onclick="rollSkill('Melee Attack', 'brawn', 'combatArts')">
-          Melee Attack<br />
-          <span class="muted">Combat Arts + Brawn</span>
-        </button>
+        <div class="roll-control">
+          <button class="button-red" style="width:100%;" onclick="rollSkill('Melee Attack', 'brawn', 'combatArts', 'combat_melee')">
+            Melee Attack<br />
+            <span class="muted">Combat Arts + Brawn</span>
+          </button>
+          <div class="roll-bonus-row">
+            <label><input id="combat_melee_bonus1" type="checkbox" /> +1d10</label>
+            <label><input id="combat_melee_bonus2" type="checkbox" /> +2d10</label>
+          </div>
+          <div id="combat_melee_talentBonuses" class="roll-bonus-row talent-bonus-row"></div>
+        </div>
 
-        <button class="button-green" style="width:100%; margin-bottom:10px;" onclick="rollSkill('Ranged Attack', 'coordination', 'combatArts')">
-          Ranged Attack<br />
-          <span class="muted">Combat Arts + Coordination</span>
-        </button>
+        <div class="roll-control" style="margin-top:12px;">
+          <button class="button-green" style="width:100%;" onclick="rollSkill('Ranged Attack', 'coordination', 'combatArts', 'combat_ranged')">
+            Ranged Attack<br />
+            <span class="muted">Combat Arts + Coordination</span>
+          </button>
+          <div class="roll-bonus-row">
+            <label><input id="combat_ranged_bonus1" type="checkbox" /> +1d10</label>
+            <label><input id="combat_ranged_bonus2" type="checkbox" /> +2d10</label>
+          </div>
+          <div id="combat_ranged_talentBonuses" class="roll-bonus-row talent-bonus-row"></div>
+        </div>
 
-        <button class="button-purple" style="width:100%;" onclick="rollSkill('Arcane Spell', 'intellect', 'arcaneArts')">
-          Arcane Spell<br />
-          <span class="muted">Arcane Arts + Intellect</span>
-        </button>
+        <div class="roll-control" style="margin-top:12px;">
+          <button class="button-purple" style="width:100%;" onclick="rollSkill('Arcane Spell', 'intellect', 'arcaneArts', 'combat_arcane')">
+            Arcane Spell<br />
+            <span class="muted">Arcane Arts + Intellect</span>
+          </button>
+          <div class="roll-bonus-row">
+            <label><input id="combat_arcane_bonus1" type="checkbox" /> +1d10</label>
+            <label><input id="combat_arcane_bonus2" type="checkbox" /> +2d10</label>
+          </div>
+          <div id="combat_arcane_talentBonuses" class="roll-bonus-row talent-bonus-row"></div>
+        </div>
+
+
+        <div class="roll-control" style="margin-top:12px;">
+          <button class="button-purple" style="width:100%;" onclick="rollSkill('Divine Spell', 'will', 'divineArts', 'combat_divine')">
+            Divine Spell<br />
+            <span class="muted">Divine Arts + Will</span>
+          </button>
+          <div class="roll-bonus-row">
+            <label><input id="combat_divine_bonus1" type="checkbox" /> +1d10</label>
+            <label><input id="combat_divine_bonus2" type="checkbox" /> +2d10</label>
+          </div>
+          <div id="combat_divine_talentBonuses" class="roll-bonus-row talent-bonus-row"></div>
+        </div>
       </div>
 
       <div class="card">
@@ -725,6 +805,238 @@
       return getNumber('combatArts') + getAttribute('power') + getPassiveTalentBonus('Ki Reserve', 2);
     }
 
+    function getPassiveTalentSummary() {
+      const entries = [];
+      const passiveStats = [
+        { name: 'Action Point Reserve', label: 'Max AP', value: getPassiveTalentBonus('Action Point Reserve', 1) },
+        { name: 'Inner Reserve', label: 'HP', value: getPassiveTalentBonus('Inner Reserve', 5) },
+        { name: 'Arcane Reserve', label: 'Arcane SP', value: getPassiveTalentBonus('Arcane Reserve', 4) },
+        { name: 'Divine Reserve', label: 'Divine SP', value: getPassiveTalentBonus('Divine Reserve', 4) },
+        { name: 'Ki Reserve', label: 'Ki', value: getPassiveTalentBonus('Ki Reserve', 2) },
+        { name: 'Portage', label: 'Gear Slots', value: getPassiveTalentBonus('Portage', 3) },
+        { name: 'Blazing Speed', label: 'Movement per AP', value: getPassiveTalentBonus('Blazing Speed', 2) }
+      ];
+
+      passiveStats.forEach(function(item) {
+        if (item.value > 0) {
+          entries.push(item.name + ': +' + item.value + ' ' + item.label);
+        }
+      });
+
+      return entries.length ? entries.join(' | ') : 'No passive stat talents selected.';
+    }
+
+
+
+    const PASSIVE_ROLL_TALENT_MODIFIERS = [
+      { talent: 'Acute Hearing', label: 'Acute Hearing: sound', dice: 1, keys: ['awareness_reasoning', 'investigation_reasoning'] },
+      { talent: 'Acute Smell', label: 'Acute Smell: scent', dice: 1, keys: ['awareness_reasoning', 'nature_reasoning'] },
+      { talent: 'Trap Sense', label: 'Trap Sense: traps', dice: 1, keys: ['awareness_reasoning', 'investigation_reasoning', 'skullduggery_coordination'] },
+      { talent: 'Judge of Angles', label: 'Judge of Angles: hidden stonework/traps', dice: 1, keys: ['awareness_reasoning', 'investigation_reasoning', 'skullduggery_coordination'] },
+      { talent: 'Outdoorsman', label: 'Outdoorsman: wilderness', dice: 2, keys: ['survival_reasoning', 'nature_reasoning'] },
+      { talent: 'Quiet Stride', label: 'Quiet Stride: stealth', dice: 1, keys: ['stealth_coordination'] },
+      { talent: 'Manual Deftness', label: 'Manual Deftness: fine work', dice: 1, keys: ['skullduggery_coordination'] },
+      { talent: 'Master of Disguise', label: 'Master of Disguise', dice: 1, keys: ['deceit_intellect', 'performance_power'] },
+      { talent: 'Bardic Lore', label: 'Bardic Lore', dice: 2, keys: ['history_intellect'] },
+      { talent: 'Exceptional Magical Ability', label: 'Exceptional Magical Ability', dice: 1, keys: ['arcaneArts_intellect', 'divineArts_will', 'combat_arcane', 'combat_divine'] },
+      { talent: 'Eloquence', label: 'Eloquence: verbal spell', dice: 1, keys: ['arcaneArts_intellect', 'divineArts_will', 'combat_arcane', 'combat_divine'] },
+      { talent: 'Arcane Discovery', label: 'Arcane Discovery: identify/research magic', dice: 1, keys: ['arcaneArts_intellect', 'history_intellect', 'investigation_reasoning'] },
+      { talent: 'Fluid Wrists', label: 'Fluid Wrists: thrown/light weapon', dice: 1, keys: ['combatArts_coordination', 'combat_ranged', 'combat_melee'] },
+      { talent: 'Natural Archer', label: 'Natural Archer: bow shot', dice: 1, keys: ['combat_ranged', 'combatArts_coordination'] },
+      { talent: 'Weapon Specialization', label: 'Weapon Specialization', dice: 1, keys: ['combat_melee', 'combat_ranged', 'combatArts_brawn', 'combatArts_coordination'] },
+      { talent: 'Weapons Master', label: 'Weapons Master', dice: 2, keys: ['combat_melee', 'combat_ranged', 'combatArts_brawn', 'combatArts_coordination'] },
+      { talent: 'Pack Hunter', label: 'Pack Hunter: flanking', dice: 1, keys: ['combat_melee', 'combat_ranged', 'combatArts_brawn', 'combatArts_coordination'] },
+      { talent: 'Shadow Strike', label: 'Shadow Strike: stealth/surprise', dice: 2, keys: ['combat_melee', 'combat_ranged', 'combatArts_brawn', 'combatArts_coordination'] }
+    ];
+
+    function escapeHtmlAttribute(value) {
+      return String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function renderTalentRollBonuses() {
+      const containers = document.querySelectorAll('.talent-bonus-row');
+      containers.forEach(function(container) {
+        container.innerHTML = '';
+      });
+
+      PASSIVE_ROLL_TALENT_MODIFIERS.forEach(function(modifier, index) {
+        const rank = getSelectedTalentCount(modifier.talent);
+        if (rank <= 0) return;
+
+        modifier.keys.forEach(function(key) {
+          const container = document.getElementById(key + '_talentBonuses');
+          if (!container) return;
+
+          const totalDice = modifier.dice * rank;
+          const label = document.createElement('label');
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.className = 'talent-bonus-checkbox';
+          checkbox.dataset.bonusKey = key;
+          checkbox.dataset.dice = String(totalDice);
+          checkbox.dataset.label = modifier.label;
+          checkbox.id = key + '_talent_' + index;
+
+          label.appendChild(checkbox);
+          label.appendChild(document.createTextNode(' +' + totalDice + 'd10 ' + modifier.label));
+          container.appendChild(label);
+        });
+      });
+    }
+
+    function getTalentRollBonusDice(bonusKey) {
+      if (!bonusKey) return 0;
+      let bonus = 0;
+      document.querySelectorAll('.talent-bonus-checkbox[data-bonus-key="' + escapeHtmlAttribute(bonusKey) + '"]').forEach(function(checkbox) {
+        if (checkbox.checked) {
+          bonus += Number(checkbox.dataset.dice || 0);
+        }
+      });
+      return bonus;
+    }
+
+    const LIMITED_USE_OPTIONS = [
+      { id: 'ancestry_versatility', sourceType: 'ancestryTrait', sourceName: 'Versatility', name: 'Versatility', dice: 1, reset: 'scene', note: 'Human. Add +1d10 before rolling.' },
+      { id: 'ancestry_shadowstep_grace', sourceType: 'ancestryTrait', sourceName: 'Shadowstep Grace', name: 'Shadowstep Grace', dice: 1, reset: 'scene', note: 'Kötkin. Stealth or Coordination-based roll after moving 3 squares.' },
+      { id: 'ancestry_bloodfire_surge', sourceType: 'ancestryTrait', sourceName: 'Bloodfire Surge', name: 'Bloodfire Surge', dice: 1, reset: 'scene', note: 'Orken. Use +2d10 instead if at or below half HP by also checking a manual +1d10 box.' },
+      { id: 'ancestry_blood_of_the_beast', sourceType: 'ancestryTrait', sourceName: 'Blood of the Beast', name: 'Blood of the Beast', dice: 2, reset: 'scene', note: 'Ulfhediné. Defend or protect an ally.' },
+      { id: 'ancestry_stoneblood_endurance', sourceType: 'ancestryTrait', sourceName: 'Stoneblood Endurance', name: 'Stoneblood Endurance', dice: 2, reset: 'longRest', note: 'Dwarf. Physical Resistance against poison, disease, or fatigue.' },
+      { id: 'ancestry_keen_vision', sourceType: 'ancestryTrait', sourceName: 'Keen Vision', name: 'Keen Vision', dice: 2, reset: 'scene', note: 'Elf. Visual Awareness against hidden threats, traps, distance, or illusions.' },
+      { id: 'ancestry_cold_blooded_logic', sourceType: 'ancestryTrait', sourceName: 'Cold-Blooded Logic', name: 'Cold-Blooded Logic', dice: 2, reset: 'scene', note: 'Serpentas. Mental Resistance against charm, fear, or coercion.' },
+
+      { id: 'culture_earth_sense', sourceType: 'culturalTrait', sourceName: 'Earth Sense', name: 'Earth Sense', dice: 2, reset: 'scene', note: 'Detect hidden stonework, passages, or structural weakness.' },
+      { id: 'culture_dwarven_resilience', sourceType: 'culturalTrait', sourceName: 'Dwarven Resilience', name: 'Dwarven Resilience', dice: 1, reset: 'scene', note: 'Defense and both Resistances against one attack or effect.' },
+      { id: 'culture_shadow_pounce', sourceType: 'culturalTrait', sourceName: 'Shadow Pounce', name: 'Shadow Pounce', dice: 2, reset: 'longRest', note: 'Attack unaware, distracted, or surprised target.' },
+      { id: 'culture_veil_dancer', sourceType: 'culturalTrait', sourceName: 'Veil Dancer', name: 'Veil Dancer', dice: 2, reset: 'scene', note: 'Defense against a physical attack in dim light or shadow.' },
+      { id: 'culture_mystic_channeling', sourceType: 'culturalTrait', sourceName: 'Mystic Channeling', name: 'Mystic Channeling', dice: 1, reset: 'scene', note: 'Arcane or Divine casting roll.' },
+      { id: 'culture_scales_of_protection', sourceType: 'culturalTrait', sourceName: 'Scales of Protection', name: 'Scales of Protection', dice: 1, reset: 'scene', note: 'Physical Resistance against damage or physical effects.' },
+      { id: 'culture_pack_tactics', sourceType: 'culturalTrait', sourceName: 'Pack Tactics', name: 'Pack Tactics', dice: 1, reset: 'combat', note: 'You and an adjacent ally attack the same target.' },
+      { id: 'culture_moonlit_howl_ally', sourceType: 'culturalTrait', sourceName: 'Moonlit Howl', name: 'Moonlit Howl: Ally Bonus', dice: 1, reset: 'scene', note: 'One ally gains +1d10 to their next roll.' },
+      { id: 'culture_ferocious_charge', sourceType: 'culturalTrait', sourceName: 'Ferocious Charge', name: 'Ferocious Charge', dice: 1, reset: 'scene', note: 'Move 4 squares straight toward target and make melee attack.' },
+      { id: 'culture_berserker_discipline', sourceType: 'culturalTrait', sourceName: 'Berserker Discipline', name: 'Berserker Discipline', dice: 1, reset: 'combat', note: 'Use +2d10 instead at half HP by also checking a manual +1d10 box.' },
+      { id: 'culture_adaptable_mind', sourceType: 'culturalTrait', sourceName: 'Adaptable Mind', name: 'Adaptable Mind', dice: 1, reset: 'scene', note: 'Intellect-based puzzles, investigation, or learning.' },
+      { id: 'culture_resourceful_resilience', sourceType: 'culturalTrait', sourceName: 'Resourceful Resilience', name: 'Resourceful Resilience', dice: 1, reset: 'scene', note: 'Physical Resistance roll.' },
+
+      { id: 'talent_battle_hardened', sourceType: 'talent', sourceName: 'Battle Hardened', name: 'Battle Hardened', dice: 1, reset: 'scene', note: 'Physical Resistance reaction.' },
+      { id: 'talent_divine_resistance', sourceType: 'talent', sourceName: 'Divine Resistance', name: 'Divine Resistance', dice: 2, reset: 'scene', note: 'Mental Resistance against divine or magical effects.' },
+      { id: 'talent_expert_avoidance', sourceType: 'talent', sourceName: 'Expert Avoidance', name: 'Expert Avoidance', dice: 2, reset: 'scene', note: 'Dodge or Block reaction.' },
+      { id: 'talent_high_jumper', sourceType: 'talent', sourceName: 'High Jumper', name: 'High Jumper', dice: 2, reset: 'scene', note: 'Jumping roll.' },
+      { id: 'talent_mana_reading', sourceType: 'talent', sourceName: 'Mana Reading', name: 'Mana Reading', dice: 2, reset: 'scene', note: 'Detect magical auras and residues.' },
+      { id: 'talent_musical_magic', sourceType: 'talent', sourceName: 'Musical Magic', name: 'Musical Magic', dice: 1, reset: 'scene', note: 'Ally next Skill or Combat roll.' },
+      { id: 'talent_training_in_disarm', sourceType: 'talent', sourceName: 'Training In Disarm', name: 'Training In Disarm', dice: 1, reset: 'scene', note: 'Disarm attempt.' },
+      { id: 'talent_tranquil_mind', sourceType: 'talent', sourceName: 'Tranquil Mind', name: 'Tranquil Mind', dice: 1, reset: 'scene', note: 'Reasoning or Intellect roll.' }
+    ];
+
+    let limitedUseState = {};
+
+    function characterHasLimitedUse(option) {
+      if (option.sourceType === 'talent') {
+        return getSelectedTalentCount(option.sourceName) > 0;
+      }
+
+      if (option.sourceType === 'ancestryTrait') {
+        return getCurrentAncestry().ancestralTrait === option.sourceName;
+      }
+
+      if (option.sourceType === 'culturalTrait') {
+        const culturalTrait = document.getElementById('culturalTrait')?.value || '';
+        return culturalTrait === option.sourceName;
+      }
+
+      return false;
+    }
+
+    function renderLimitedUseTrackers() {
+      const container = document.getElementById('limitedUseList');
+      if (!container) return;
+
+      container.innerHTML = '';
+
+      const available = LIMITED_USE_OPTIONS.filter(characterHasLimitedUse);
+
+      if (!available.length) {
+        const empty = document.createElement('div');
+        empty.className = 'muted';
+        empty.innerText = 'No limited-use bonuses available from current ancestry, cultural trait, or selected talents.';
+        container.appendChild(empty);
+        return;
+      }
+
+      available.forEach(function(option) {
+        if (!limitedUseState[option.id]) {
+          limitedUseState[option.id] = { used: false };
+        }
+
+        const card = document.createElement('div');
+        card.className = 'talent-card';
+
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'limited-use-checkbox';
+        checkbox.dataset.id = option.id;
+        checkbox.dataset.dice = String(option.dice || 0);
+        checkbox.dataset.reset = option.reset;
+        checkbox.disabled = !!limitedUseState[option.id].used;
+        checkbox.checked = !!limitedUseState[option.id].used;
+
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(' +' + option.dice + 'd10 ' + option.name));
+
+        const meta = document.createElement('div');
+        meta.className = 'talent-meta';
+        meta.innerText = 'Reset: ' + option.reset + ' | ' + option.note;
+
+        card.appendChild(label);
+        card.appendChild(meta);
+        container.appendChild(card);
+      });
+    }
+
+    function getLimitedUseRollBonusDice() {
+      let bonus = 0;
+      document.querySelectorAll('.limited-use-checkbox').forEach(function(checkbox) {
+        if (checkbox.checked && !checkbox.disabled) {
+          bonus += Number(checkbox.dataset.dice || 0);
+        }
+      });
+      return bonus;
+    }
+
+    function consumeLimitedUseBonuses() {
+      let changed = false;
+      document.querySelectorAll('.limited-use-checkbox').forEach(function(checkbox) {
+        if (checkbox.checked && !checkbox.disabled) {
+          const id = checkbox.dataset.id;
+          if (id) {
+            limitedUseState[id] = { used: true };
+            changed = true;
+          }
+        }
+      });
+
+      if (changed) {
+        renderLimitedUseTrackers();
+      }
+    }
+
+    function resetLimitedUses(resetType) {
+      LIMITED_USE_OPTIONS.forEach(function(option) {
+        if (option.reset === resetType && limitedUseState[option.id]) {
+          limitedUseState[option.id].used = false;
+        }
+      });
+      renderLimitedUseTrackers();
+    }
+
+    function getLimitedUseSaveState() {
+      return limitedUseState || {};
+    }
+
+    function applyLimitedUseSaveState(state) {
+      limitedUseState = state && typeof state === 'object' ? state : {};
+    }
+
     function renderTalentPicker() {
       const search = (document.getElementById('talentSearch')?.value || '').toLowerCase();
       const select = document.getElementById('talentSelect');
@@ -836,6 +1148,8 @@
 
         container.appendChild(card);
       });
+
+      renderTalentRollBonuses();
     }
 
 
@@ -1020,14 +1334,20 @@
 
       SKILLS.forEach(function(skill) {
         const row = document.createElement('div');
+        const bonusKey = skill.id + '_' + skill.attribute;
         row.className = 'skill-row';
         row.innerHTML = `
           <div>
             <strong>${skill.label}</strong>
             <div id="${skill.id}_${skill.attribute}_pool" class="muted">Pool: 0d10</div>
             <div class="muted">${ATTRIBUTE_LABELS[skill.attribute]} + ${skill.name}</div>
+            <div class="roll-bonus-row">
+              <label><input id="${bonusKey}_bonus1" type="checkbox" /> +1d10</label>
+              <label><input id="${bonusKey}_bonus2" type="checkbox" /> +2d10</label>
+            </div>
+            <div id="${bonusKey}_talentBonuses" class="roll-bonus-row talent-bonus-row"></div>
           </div>
-          <button onclick="rollSkill('${skill.label}', '${skill.attribute}', '${skill.id}')">Roll</button>
+          <button onclick="rollSkill('${skill.label}', '${skill.attribute}', '${skill.id}', '${bonusKey}')">Roll</button>
         `;
         list.appendChild(row);
       });
@@ -1053,13 +1373,32 @@
       return div;
     }
 
-    function rollSkill(label, attributeId, skillId) {
+
+    function getRollBonusDice(bonusKey) {
+      if (!bonusKey) return 0;
+
+      let bonus = 0;
+      const bonusOne = document.getElementById(bonusKey + '_bonus1');
+      const bonusTwo = document.getElementById(bonusKey + '_bonus2');
+
+      if (bonusOne && bonusOne.checked) bonus += 1;
+      if (bonusTwo && bonusTwo.checked) bonus += 2;
+      bonus += getTalentRollBonusDice(bonusKey);
+      bonus += getLimitedUseRollBonusDice();
+
+      return bonus;
+    }
+
+    function rollSkill(label, attributeId, skillId, bonusKey = '') {
       const attribute = ATTRIBUTE_IDS.includes(attributeId) ? getAttribute(attributeId) : getNumber(attributeId);
       const skillRank = getNumber(skillId);
-      const pool = attribute + skillRank;
+      const bonusDice = getRollBonusDice(bonusKey);
+      const pool = attribute + skillRank + bonusDice;
       const trained = skillRank > 0;
+      const displayLabel = bonusDice > 0 ? label + ' +' + bonusDice + 'd10' : label;
 
-      rollDicePool(label, pool, trained);
+      rollDicePool(displayLabel, pool, trained);
+      consumeLimitedUseBonuses();
     }
 
     function rollDicePool(label, pool, trained = true) {
@@ -1166,7 +1505,8 @@
         actionPoints: {
           max: getNumber('actionPoints'),
           current: currentAP
-        }
+        },
+        limitedUseState: getLimitedUseSaveState()
       };
 
       UNIQUE_SKILLS.forEach(function(skill) {
@@ -1258,8 +1598,10 @@
         currentAP = getMaxAP();
       }
 
+      applyLimitedUseSaveState(data.limitedUseState);
       renderTalentPicker();
       renderSelectedTalents();
+      renderLimitedUseTrackers();
       updateSheet();
     }
 
@@ -1356,8 +1698,10 @@
       document.getElementById('actionPoints').value = 5;
       currentAP = 5;
 
+      limitedUseState = {};
       renderTalentPicker();
       renderSelectedTalents();
+      renderLimitedUseTrackers();
       updateSheet();
       setSaveStatus("Character cleared.");
     }
@@ -1437,6 +1781,8 @@
       document.getElementById('arcaneSP').innerText = getArcaneSP();
       document.getElementById('divineSP').innerText = getDivineSP();
       document.getElementById('kiPoints').innerText = getKiPoints();
+      document.getElementById('effectiveMaxAP').innerText = getMaxAP();
+      document.getElementById('passiveTalentSummary').innerText = getPassiveTalentSummary();
 
       SKILLS.forEach(function(skill) {
         const poolElement = document.getElementById(skill.id + '_' + skill.attribute + '_pool');
@@ -1458,6 +1804,7 @@
     renderSkillRolls();
     renderTalentPicker();
     renderSelectedTalents();
+    renderLimitedUseTrackers();
     currentAP = getMaxAP();
     updateSheet();
   </script>
