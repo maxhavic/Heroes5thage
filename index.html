@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Heroes of the 5th Age Character Manager</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
+    .grid-6 {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    input,
+    select,
+    button {
+      font: inherit;
+    }
+
+    input,
+    select {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 4px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      background: #2563eb;
+      color: white;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .button-red {
+      background: #b91c1c;
+    }
+
+    .button-red:hover {
+      background: #991b1b;
+    }
+
+    .button-green {
+      background: #15803d;
+    }
+
+    .button-green:hover {
+      background: #166534;
+    }
+
+    .button-purple {
+      background: #7e22ce;
+    }
+
+    .button-purple:hover {
+      background: #6b21a8;
+    }
+
+    .stat {
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .label {
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    .big {
+      font-size: 34px;
+      font-weight: bold;
+      margin-top: 4px;
+    }
+
+    .dice-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .dice {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 20px;
+      border: 2px solid #475569;
+      background: white;
+      color: black;
+    }
+
+    .success {
+      background: #bfdbfe;
+      border-color: #3b82f6;
+      color: #1e3a8a;
+    }
+
+    .ten {
+      background: #bbf7d0;
+      border-color: #22c55e;
+      color: #14532d;
+    }
+
+    .one {
+      background: #fecaca;
+      border-color: #ef4444;
+      color: #7f1d1d;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .ap-button-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .ap-spend {
+      background: #475569;
+    }
+
+    .ap-spend:hover {
+      background: #334155;
+    }
+
+    .skill-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .talent-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+
+    .talent-card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .talent-meta {
+      color: #94a3b8;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .skill-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: #0f172a;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .muted {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    .resource-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <div class="card">
+      <h1>Heroes of the 5th Age</h1>
+      <p class="muted">Standalone Character Manager</p>
+    </div>
+
+    <div class="card">
+      <h2>Save / Load Character</h2>
+      <p class="muted">Save locally in this browser, export a JSON backup, or import a saved character file.</p>
+
+      <div class="grid grid-3">
+        <button onclick="saveCharacterToBrowser()">Save to Browser</button>
+        <button onclick="loadCharacterFromBrowser()">Load from Browser</button>
+        <button onclick="exportCharacterJson()">Export JSON</button>
+      </div>
+
+      <div class="grid grid-3" style="margin-top:12px;">
+        <div>
+          <label>Import JSON</label>
+          <input id="importCharacterFile" type="file" accept=".json" onchange="importCharacterJson(event)" />
+        </div>
+
+        <div style="display:flex; align-items:end;">
+          <button class="button-red" style="width:100%;" onclick="clearCharacterSheet()">Clear Character</button>
+        </div>
+
+        <div class="stat">
+          <div class="label">Save Status</div>
+          <div id="saveStatus" class="muted">Not saved this session.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="card">
+        <h2>Identity</h2>
+        <label>Character Name</label>
+        <input id="charName" placeholder="Character Name" />
+
+        <label>Culture</label>
+        <select id="culture">
+          <option>Dwarf</option>
+          <option>Elf</option>
+          <option>Human</option>
+          <option>Kötkin</option>
+          <option>Orken</option>
+          <option>Serpentas</option>
+          <option>Ulfhediné</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <h2>Vitals</h2>
+        <div class="grid grid-3">
+          <div class="stat">
+            <div class="label">HP</div>
+            <div id="hp" class="big">16</div>
+          </div>
+          <div class="stat">
+            <div class="label">Max AP</div>
+            <input id="actionPoints" type="number" value="5" min="0" max="20" onchange="syncCurrentAPToMax()" />
+          </div>
+          <div class="stat">
+            <div class="label">Move</div>
+            <div id="moveSpeed" class="big">4</div>
+          </div>
+        </div>
+
+        <div class="resource-grid">
+          <div class="stat">
+            <div class="label">Arcane SP</div>
+            <div id="arcaneSP" class="big">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">Divine SP</div>
+            <div id="divineSP" class="big">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">Ki Points</div>
+            <div id="kiPoints" class="big">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Equipment Slots</h2>
+        <div class="stat">
+          <div class="label">Capacity</div>
+          <div id="slots" class="big">14 / 30</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Action Point Tracker</h2>
+      <p class="muted">Attack and spell actions cost 2 AP. Movement costs 1 AP per 4 squares.</p>
+
+      <div class="grid grid-3">
+        <div class="stat">
+          <div class="label">Current AP</div>
+          <div id="currentAPDisplay" class="big">5</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Movement Remaining</div>
+          <div id="movementRemaining" class="big">20 sq</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">AP Spent</div>
+          <div id="apSpentDisplay" class="big">0</div>
+        </div>
+      </div>
+
+      <div class="ap-button-row">
+        <button class="ap-spend" onclick="spendAP(2, 'Attack')">Attack -2 AP</button>
+        <button class="ap-spend" onclick="spendAP(2, 'Spell')">Spell -2 AP</button>
+        <button class="ap-spend" onclick="spendAP(1, 'Move 4 Squares')">Move 4 Squares -1 AP</button>
+        <button onclick="resetAP()">Reset AP</button>
+      </div>
+
+      <div id="apWarning" class="muted" style="margin-top: 12px;"></div>
+      <div id="apLog" class="muted" style="margin-top: 8px;"></div>
+    </div>
+
+    <div class="card">
+      <h2>Attributes</h2>
+      <div class="grid grid-6">
+        <div>
+          <label>Brawn</label>
+          <input id="brawn" type="number" value="4" onchange="updateSheet()" />
+        </div>
+        <div>
+          <label>Coordination</label>
+          <input id="coordination" type="number" value="4" onchange="updateSheet()" />
+        </div>
+        <div>
+          <label>Intellect</label>
+          <input id="intellect" type="number" value="4" onchange="updateSheet()" />
+        </div>
+        <div>
+          <label>Reasoning</label>
+          <input id="reasoning" type="number" value="4" onchange="updateSheet()" />
+        </div>
+        <div>
+          <label>Will</label>
+          <input id="will" type="number" value="4" onchange="updateSheet()" />
+        </div>
+        <div>
+          <label>Power</label>
+          <input id="power" type="number" value="4" onchange="updateSheet()" />
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Skill Ranks</h2>
+      <p class="muted">Enter each skill rank. A rank of 0 means the skill is untrained, so 10s do not explode.</p>
+      <div id="skillRankGrid" class="grid grid-6"></div>
+    </div>
+
+    <div class="card">
+      <h2>Skills</h2>
+      <p class="muted">Each skill uses its default linked attribute. Combat Arts appears twice because melee and ranged attacks use different attributes.</p>
+      <div id="skillRollList" class="skill-grid"></div>
+    </div>
+
+
+    <div class="card">
+      <h2>Talents</h2>
+      <p class="muted">Stage 1: search the talent database, add talents to the character, and view their rules. Automation comes next.</p>
+
+      <div class="grid grid-3">
+        <div>
+          <label>Search Talents</label>
+          <input id="talentSearch" placeholder="Search by name, prerequisite, activation, or effect" oninput="renderTalentPicker()" />
+        </div>
+
+        <div>
+          <label>Talent</label>
+          <select id="talentSelect"></select>
+        </div>
+
+        <div style="display:flex; align-items:end;">
+          <button style="width:100%;" onclick="addSelectedTalent()">Add Talent</button>
+        </div>
+      </div>
+
+      <div class="stat" style="margin-top:16px;">
+        <div class="label">Selected Talents</div>
+        <div id="talentCount" class="big">0</div>
+      </div>
+
+      <div id="selectedTalents" class="talent-list" style="margin-top:16px;"></div>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="card">
+        <h2>Combat</h2>
+
+        <button class="button-red" style="width:100%; margin-bottom:10px;" onclick="rollSkill('Melee Attack', 'brawn', 'combatArts')">
+          Melee Attack<br />
+          <span class="muted">Combat Arts + Brawn</span>
+        </button>
+
+        <button class="button-green" style="width:100%; margin-bottom:10px;" onclick="rollSkill('Ranged Attack', 'coordination', 'combatArts')">
+          Ranged Attack<br />
+          <span class="muted">Combat Arts + Coordination</span>
+        </button>
+
+        <button class="button-purple" style="width:100%;" onclick="rollSkill('Arcane Spell', 'intellect', 'arcaneArts')">
+          Arcane Spell<br />
+          <span class="muted">Arcane Arts + Intellect</span>
+        </button>
+      </div>
+
+      <div class="card">
+        <h2>Defenses</h2>
+        <div class="stat">
+          <div class="label">Physical Resistance Endure</div>
+          <div id="prEndure" class="big">4d10</div>
+        </div>
+        <div class="stat">
+          <div class="label">Physical Resistance Avoid</div>
+          <div id="prAvoid" class="big">4d10</div>
+        </div>
+        <div class="stat">
+          <div class="label">Mental Resistance Resolve</div>
+          <div id="mrResolve" class="big">4d10</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="dicePanel" class="card hidden">
+      <div style="display:flex; justify-content:space-between; gap:16px; align-items:center;">
+        <div>
+          <h2 id="rollLabel">Roll</h2>
+          <div id="rollPool" class="muted"></div>
+        </div>
+        <div style="text-align:right;">
+          <div class="muted">Successes</div>
+          <div id="successes" class="big">0</div>
+        </div>
+      </div>
+
+      <h3>Base Dice</h3>
+      <div id="diceResults" class="dice-row"></div>
+
+      <h3>Exploded Dice</h3>
+      <div id="explodedResults" class="dice-row"></div>
+
+      <div class="grid grid-3" style="margin-top:16px;">
+        <div class="stat">
+          <div class="label">Natural 10s</div>
+          <div id="tenCount" class="big">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">Natural 1s</div>
+          <div id="oneCount" class="big">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">Critical</div>
+          <div id="criticalType" class="big">None</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+
+
+    const TALENTS = [
+      { name: "Action Point Reserve", prerequisites: "Any Arts Skill 2+; Attribute 4+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Increase maximum AP by +1 per rank." },
+      { name: "Acute Hearing", prerequisites: "None", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 to Awareness and Investigation involving sound; +1 Passive Awareness when hearing applies." },
+      { name: "Acute Smell", prerequisites: "None", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 to Awareness and Nature involving scent; +1 Passive Awareness when smell applies." },
+      { name: "Animal Empathy", prerequisites: "Handle Animal 1 or Nature 1; Power 3+", range: "Power 2", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 with one chosen animal type; empathic communication with bonded animal." },
+      { name: "Arcane Discovery", prerequisites: "Arcane Arts 1; Intellect 5+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Learn one extra Arcane Spell; +1d10 identifying magic and magical research." },
+      { name: "Accelerated Mending", prerequisites: "None", range: "Self", ap: "2", activation: "Passive / Action", upkeep: "None", effect: "Halved recovery time; +2d10 or +2 HP during recovery; remove one physical condition." },
+      { name: "Arcane Reserve", prerequisites: "Arcane Arts 2+; Power 4+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Increase maximum Arcane Spell Points by +4 per rank." },
+      { name: "Bardic Lore", prerequisites: "Intellect 3+; History 1", range: "Self", ap: "3", activation: "Action", upkeep: "None", effect: "+2d10 to History and lore-related rolls." },
+      { name: "Battlefield Awareness", prerequisites: "Will 5+; Insight 1", range: "Power 3", ap: "2", activation: "Action", upkeep: "1", effect: "Grant Defense bonuses to allies; detect hidden enemies." },
+      { name: "Battle Cry", prerequisites: "Brawn 3+; Intimidation 1", range: "Power 2", ap: "1", activation: "Action", upkeep: "None", effect: "Boost ally Defense or reduce enemy Defense." },
+      { name: "Battle Hardened", prerequisites: "Coordination 3+", range: "Self", ap: "1", activation: "Reaction", upkeep: "None", effect: "Spend 1 AP for +1d10 to Physical Resistance." },
+      { name: "Battle Tough", prerequisites: "Brawn 3+", range: "Self", ap: "1", activation: "Reaction", upkeep: "None", effect: "Recover HP equal to half Brawn after taking damage." },
+      { name: "Blazing Speed", prerequisites: "Coordination 3+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+2 movement squares per AP spent moving." },
+      { name: "Berserker Rage", prerequisites: "Brawn 4+ or Will 4+; Combat Arts 2", range: "Self", ap: "1", activation: "Action", upkeep: "None", effect: "Reduce Defense for bonus Combat Arts dice." },
+      { name: "Berserker's Fury", prerequisites: "Brawn 7+; Combat Arts 4; Berserker's Rage", range: "Self", ap: "1", activation: "Action", upkeep: "None", effect: "+3d10 Combat Arts and +1 melee damage; cannot cast spells." },
+      { name: "Calmness", prerequisites: "Will 3+", range: "Power 1", ap: "2", activation: "Action", upkeep: "None", effect: "+1d10 to calm and poised social rolls." },
+      { name: "Calming Air of Command", prerequisites: "Will 5+", range: "Power 3", ap: "2", activation: "Action", upkeep: "1", effect: "Distribute bonus dice against fear and morale effects." },
+      { name: "Commanding Protection", prerequisites: "Combat Arts 2; Power 5+", range: "Power 2", ap: "2", activation: "Action", upkeep: "None", effect: "Grant ally Defense or reduce enemy Defense." },
+      { name: "Cunning Tongue", prerequisites: "Reasoning 3+", range: "Self", ap: "1", activation: "Action", upkeep: "None", effect: "+1d10 to reasoning-based social rolls." },
+      { name: "Defending Shield Block", prerequisites: "Brawn 5+; Shield Training; Combat Arts 2", range: "Adjacent Ally", ap: "1", activation: "Reaction", upkeep: "None", effect: "Interpose shield to protect ally and reduce damage." },
+      { name: "Divine Reserve", prerequisites: "Divine Arts 2+; Power 4+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Increase maximum Divine Spell Points by +4 per rank." },
+      { name: "Divine Resistance", prerequisites: "Divine Arts 1 or Temple Lifestyle; Will 3+", range: "Self", ap: "1", activation: "Reaction", upkeep: "None", effect: "+2d10 to Mental Resistance against divine or magical effects." },
+      { name: "Divine Devotee", prerequisites: "Will 3+; Divine Arts 1 or Divine Lifestyle", range: "Self", ap: "Varies", activation: "Varies", upkeep: "None", effect: "Gain access to one Divine Domain." },
+      { name: "Divine Weapons", prerequisites: "Divine Arts 1; Brawn 3+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Bonus dice against undead and demons." },
+      { name: "Divine Defense", prerequisites: "Divine Arts 2; Power 5+", range: "Power 2", ap: "2", activation: "Action", upkeep: "None", effect: "Grant temporary HP to allies." },
+      { name: "Elemental Adaptation", prerequisites: "Power 3+", range: "Self", ap: "2", activation: "Action", upkeep: "None", effect: "Bonus dice against environmental elemental hazards." },
+      { name: "Elemental Vigor", prerequisites: "Power 5+; Elemental Adaptation", range: "Self", ap: "1", activation: "Reaction", upkeep: "None", effect: "Heal after resisting elemental damage; gain temporary resistance." },
+      { name: "Eloquence", prerequisites: "Intellect 3+; Arcane Arts 1 or Divine Arts 1", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 to spellcasting with verbal components." },
+      { name: "Eye of the Tiger", prerequisites: "Brawn 3+", range: "Self", ap: "1", activation: "Action", upkeep: "1", effect: "+1d10 to non-combat Brawn rolls; +2 carrying slots." },
+      { name: "Expert Avoidance", prerequisites: "Coordination 5+", range: "Self", ap: "1", activation: "Reaction", upkeep: "None", effect: "Spend AP for +2d10 Dodge and Block and free movement." },
+      { name: "Ear for Music", prerequisites: "Will 3+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Perfect pitch; +2d10 to music and mimicry Performance." },
+      { name: "Exceptional Magical Ability", prerequisites: "Intellect 3+; Arcane Arts 1 or Divine Arts 1", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 to spellcasting rolls." },
+      { name: "Ethereal Sight", prerequisites: "Power 5+; Arcane Arts 1 or Divine Arts 1", range: "Self", ap: "1", activation: "Action", upkeep: "None", effect: "See invisible creatures and magical effects." },
+      { name: "Fluid Wrists", prerequisites: "None", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 with Thrown and Light Weapons." },
+      { name: "High Jumper", prerequisites: "Brawn 3+", range: "Self", ap: "1", activation: "Action", upkeep: "None", effect: "+2d10 to jumping rolls." },
+      { name: "Healer's Touch", prerequisites: "Will 3+; Healing 1", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Restore +1 HP per success with Healing." },
+      { name: "Hammerhand", prerequisites: "Brawn 5+; Combat Arts 2 (Unarmed)", range: "Self", ap: "Attack Cost +1", activation: "Action", upkeep: "None", effect: "Ignore non-magical Defense with unarmed attacks." },
+      { name: "Heat Resistance", prerequisites: "Will 5+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+2 Defense and +2d10 vs fire and heat." },
+      { name: "Holy Burst", prerequisites: "Divine Arts 2; Power 5+", range: "2-square radius", ap: "1", activation: "Reaction", upkeep: "1", effect: "Holy shockwave damages undead and demons and knocks prone." },
+      { name: "Hunter's Instinct", prerequisites: "Reasoning 3+; Nature 1", range: "Self", ap: "2", activation: "Action", upkeep: "None", effect: "Mark prey; enhanced tracking and awareness." },
+      { name: "Inner Reserve", prerequisites: "None", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Increase maximum HP by +5 per rank." },
+      { name: "Iron Will", prerequisites: "Will 3+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+2d10 against fear and charm; reroll failed resistance once per scene." },
+      { name: "Item Lore", prerequisites: "Intellect 3+; Arcane Arts 1 or Divine Arts 1", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Bonus dice to identify and craft magical items." },
+      { name: "Intimidating Presence", prerequisites: "Will 5+; Intimidation 2", range: "Power 2", ap: "2", activation: "Action", upkeep: "None", effect: "Frighten targets with opposed Intimidation." },
+      { name: "Judge of Angles", prerequisites: "Reasoning 3+; Skullduggery 1 or Investigation 1", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 to detect hidden doors and traps." },
+      { name: "Ki Mastery", prerequisites: "Will 3+; Combat Arts 1; Pugilist Training or Temple Lifestyle", range: "Self", ap: "Varies", activation: "Action or Reaction", upkeep: "1", effect: "Use Will for melee; gain Martial Arts Schools." },
+      { name: "Ki Reserve", prerequisites: "Combat Arts 2+; Power 4+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Increase maximum Ki Points by +2 per rank." },
+      { name: "Magical Recovery", prerequisites: "Power 5+; Arcane Arts 2 or Divine Arts 2", range: "Self", ap: "3", activation: "Action", upkeep: "None", effect: "Recover Spell Points during Short Rest." },
+      { name: "Master of Disguise", prerequisites: "Deceit 2; Reasoning 3+", range: "Self", ap: "1", activation: "Action", upkeep: "None", effect: "+1d10 to disguise and impersonation." },
+      { name: "Mana Reading", prerequisites: "Arcane Arts 1 or Divine Arts 1; Intellect 3+", range: "Self", ap: "2", activation: "Action", upkeep: "None", effect: "+2d10 to detect magical auras and residues." },
+      { name: "Manual Deftness", prerequisites: "Coordination 3+; Skullduggery 1", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 to fine manual Skullduggery tasks." },
+      { name: "Musical Magic", prerequisites: "Will 3+; Performance 1", range: "Power 2", ap: "1", activation: "Action", upkeep: "None", effect: "Grant ally +1d10 to next Skill or Combat roll." },
+      { name: "Mystic Insight", prerequisites: "Power 3+; Arcane Arts 1 or Divine Arts 1", range: "Self", ap: "0", activation: "Special", upkeep: "None", effect: "Ask Storyteller one truthful supernatural question." },
+      { name: "Natural Archer", prerequisites: "Coordination 5+; Combat Arts 1", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Increase bow range and ignore Cover penalties." },
+      { name: "Natural Facility With Armor", prerequisites: "Brawn 3+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Gain +1 Defense with one armor type." },
+      { name: "Neutral Odor", prerequisites: "None", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 to Stealth or Skullduggery against scent tracking." },
+      { name: "Nimble Skeleton", prerequisites: "Coordination 3+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 escaping, squeezing, and contortion movement." },
+      { name: "Now You See Me", prerequisites: "Arcane Arts 2; Combat Arts 2; Spell Flutter; Intellect 5+", range: "Self", ap: "1+", activation: "Action", upkeep: "None", effect: "Blink between locations making attacks or spells." },
+      { name: "Outdoorsman", prerequisites: "Reasoning 3+; Nature 1 or Survival 1", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+2d10 to wilderness survival and tracking." },
+      { name: "Opportunistic Warrior", prerequisites: "Coordination 5+; Combat Arts 2", range: "Self", ap: "1", activation: "Reaction", upkeep: "None", effect: "Attack of Opportunity deals +3 damage and can stop movement." },
+      { name: "Pack Hunter", prerequisites: "Combat Arts 2+; Reasoning 3+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 while flanking with allies." },
+      { name: "Portage", prerequisites: "Brawn 3+ or Intellect 3+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+3 gear slots." },
+      { name: "Precision", prerequisites: "Coordination 5+; Combat Arts 2 or Skullduggery 2", range: "Self", ap: "1", activation: "Action", upkeep: "None", effect: "Perform ranged Backstab attacks." },
+      { name: "Quiet Stride", prerequisites: "Coordination 3+; Stealth 2", range: "Self", ap: "1", activation: "Action", upkeep: "None", effect: "+1d10 Stealth and stealth attacks." },
+      { name: "Quick Hands", prerequisites: "Coordination 3+; Skullduggery 2", range: "Self", ap: "1", activation: "Action", upkeep: "None", effect: "+1d10 to pickpocketing and sleight of hand." },
+      { name: "Rabbit's Foot", prerequisites: "Skullduggery 1; Coordination 3+", range: "Self", ap: "1", activation: "Reaction", upkeep: "None", effect: "Impose penalties on attacks against you." },
+      { name: "Regeneration", prerequisites: "Power 7+", range: "Self", ap: "2", activation: "Action", upkeep: "1", effect: "Regain HP each round while active." },
+      { name: "Reverberating Strength", prerequisites: "Brawn 5+; Brawling or Combat Arts 2", range: "Self", ap: "1", activation: "Action", upkeep: "None", effect: "Knockback, prone, and stun with melee attacks." },
+      { name: "Shadowed Sight", prerequisites: "Reasoning 3+", range: "Self", ap: "1", activation: "Reaction", upkeep: "1", effect: "See in dim light and partial darkness." },
+      { name: "Rote Magic", prerequisites: "Intellect 3+; Arcane Arts 1 or Divine Arts 1", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Reduce Spell Point costs for chosen spells." },
+      { name: "Shielded Step", prerequisites: "Coordination 3+; Shield Training", range: "Self", ap: "1", activation: "Reaction", upkeep: "None", effect: "Enhanced shield block and free movement." },
+      { name: "Shield Bash", prerequisites: "Brawn 3+; Shield Training", range: "Self", ap: "Attack Cost +1", activation: "Action", upkeep: "None", effect: "Shield attack with bonus dice." },
+      { name: "Spatial Skills", prerequisites: "Power 5+; Arcane Arts 1", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Increase spell ranges and touch spell distance." },
+      { name: "Steel Grip", prerequisites: "Brawn 3+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 to resist disarm." },
+      { name: "Steel Gaze", prerequisites: "Will 3+", range: "Power 2", ap: "1", activation: "Action", upkeep: "None", effect: "+1d10 to social rolls using eye contact." },
+      { name: "Speak With Animals", prerequisites: "Handle Animal 1 or Nature 1; Intellect 3+", range: "Power 2", ap: "2", activation: "Action", upkeep: "1", effect: "Communicate with animals." },
+      { name: "Shadow Strike", prerequisites: "Stealth 2; Quiet Stride; Coordination 3+", range: "Self", ap: "1", activation: "Action", upkeep: "None", effect: "+2d10 when attacking from stealth or surprise." },
+      { name: "Silent Takedown", prerequisites: "Stealth 3; Quiet Stride; Shadow Strike; Coordination 5+", range: "Self", ap: "2", activation: "Action", upkeep: "None", effect: "Silently incapacitate surprised humanoids." },
+      { name: "Sturdy Build", prerequisites: "Brawn 5+", range: "Self", ap: "1", activation: "Reaction", upkeep: "None", effect: "Negate physical conditions and gain extra healing." },
+      { name: "Surefooted", prerequisites: "Coordination 3+; Skullduggery 1 or Nature 1", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Reduce difficult terrain movement cost." },
+      { name: "Swift Follow Through", prerequisites: "Coordination 5+; Combat Arts 2", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Second melee attack costs only 1 AP." },
+      { name: "To The Pain", prerequisites: "Brawn 3+; Combat Arts 2", range: "Self", ap: "Attack Cost +1", activation: "Action", upkeep: "None", effect: "Inflict lingering bleeding damage." },
+      { name: "Trained Regular Footman", prerequisites: "Will 3+; Combat Arts 1", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "Adjacent allies gain Combat Arts and PR bonuses." },
+      { name: "Training In Disarm", prerequisites: "Coordination 3+; Combat Arts 1", range: "Self", ap: "1", activation: "Reaction", upkeep: "None", effect: "+1d10 to disarm attempts." },
+      { name: "Tranquil Mind", prerequisites: "Will 3+", range: "Self", ap: "1", activation: "Action", upkeep: "None", effect: "+1d10 to Reasoning or Intellect rolls." },
+      { name: "Taunt", prerequisites: "Will 3+; Intimidation 1", range: "Power 2", ap: "1", activation: "Action", upkeep: "None", effect: "Force enemies to focus attacks on you." },
+      { name: "Undetectable", prerequisites: "Will 7+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+2d10 against magical detection and scrying." },
+      { name: "Totems", prerequisites: "Arcane Arts 1 or Divine Arts 1; Will 3+", range: "Self", ap: "3", activation: "Action", upkeep: "1", effect: "Activate one chosen spirit totem ability." },
+      { name: "Turn Demon / Undead", prerequisites: "Divine Arts 1; Holy Symbol; Power 4+", range: "Power 2", ap: "2", activation: "Action", upkeep: "Special", effect: "Turn and damage undead or demons." },
+      { name: "Trap Sense", prerequisites: "Skullduggery 2 or Awareness 2; Intellect 3+", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 and +1 Passive Awareness against traps." },
+      { name: "Trapmaster", prerequisites: "Trap Sense; Skullduggery 3; Intellect 5+", range: "Self", ap: "2", activation: "Action", upkeep: "None", effect: "+2d10 to disarm traps and pick locks." },
+      { name: "Tough Skin", prerequisites: "Brawn 3+", range: "Self", ap: "1", activation: "Reaction", upkeep: "None", effect: "Reduce damage by Tough Skin rank." },
+      { name: "Weapons Master", prerequisites: "Brawn 7+ or Coordination 7+; Combat Arts 4; Weapon Specialization", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+2d10 with one weapon category." },
+      { name: "Weapon Specialization", prerequisites: "Brawn 3+ or Coordination 3+; Combat Arts 1", range: "Self", ap: "0", activation: "Passive", upkeep: "None", effect: "+1d10 and +1 damage with one weapon type." },
+      { name: "Whirlwind Strike", prerequisites: "Brawn 5+; Combat Arts 2", range: "Melee", ap: "Attack Cost +1", activation: "Action", upkeep: "None", effect: "Attack all adjacent enemies with one strike." },
+      { name: "Unyielding", prerequisites: "Brawn 3+; Will 3+", range: "Self", ap: "1", activation: "Reaction", upkeep: "None", effect: "Add Will to PR or Brawn to MR." },
+      { name: "Unyielding Recovery", prerequisites: "Unyielding", range: "Self", ap: "1", activation: "Action", upkeep: "None", effect: "Recover HP without resting once per short rest." }
+    ];
+
+    let selectedTalents = [];
+
+    function getSelectedTalentCount(name) {
+      return selectedTalents.filter(function(talent) {
+        return talent && talent.name === name;
+      }).length;
+    }
+
+    function getPassiveTalentBonus(name, perRankBonus) {
+      return getSelectedTalentCount(name) * perRankBonus;
+    }
+
+    function getMovementPerAP() {
+      return 4 + getPassiveTalentBonus('Blazing Speed', 2);
+    }
+
+    function getMaxHP() {
+      return (getNumber('brawn') + getNumber('coordination')) * 2 + getPassiveTalentBonus('Inner Reserve', 5);
+    }
+
+    function getGearSlots() {
+      return Math.min(10 + getNumber('brawn') + getPassiveTalentBonus('Portage', 3), 30);
+    }
+
+    function getArcaneSP() {
+      return getNumber('arcaneArts') + getNumber('power') + getPassiveTalentBonus('Arcane Reserve', 4);
+    }
+
+    function getDivineSP() {
+      return getNumber('divineArts') + getNumber('power') + getPassiveTalentBonus('Divine Reserve', 4);
+    }
+
+    function getKiPoints() {
+      return getNumber('combatArts') + getNumber('power') + getPassiveTalentBonus('Ki Reserve', 2);
+    }
+
+    function renderTalentPicker() {
+      const search = (document.getElementById('talentSearch')?.value || '').toLowerCase();
+      const select = document.getElementById('talentSelect');
+      if (!select) return;
+
+      const matches = TALENTS.filter(function(talent) {
+        const haystack = [
+          talent.name,
+          talent.prerequisites,
+          talent.range,
+          talent.ap,
+          talent.activation,
+          talent.upkeep,
+          talent.effect
+        ].join(' ').toLowerCase();
+
+        return haystack.includes(search);
+      });
+
+      select.innerHTML = '';
+
+      matches.forEach(function(talent) {
+        const option = document.createElement('option');
+        option.value = talent.name;
+        option.textContent = talent.name;
+        select.appendChild(option);
+      });
+    }
+
+    function addSelectedTalent() {
+      const select = document.getElementById('talentSelect');
+      if (!select || !select.value) return;
+
+      const talent = TALENTS.find(function(item) {
+        return item.name === select.value;
+      });
+
+      if (!talent) return;
+
+      const rankedTalents = [
+        'Action Point Reserve',
+        'Arcane Reserve',
+        'Divine Reserve',
+        'Inner Reserve',
+        'Ki Reserve',
+        'Portage'
+      ];
+
+      const alreadySelected = selectedTalents.some(function(item) {
+        return item.name === talent.name;
+      });
+
+      if (alreadySelected && !rankedTalents.includes(talent.name)) {
+        alert('This talent is already selected.');
+        return;
+      }
+
+      selectedTalents.push(talent);
+      renderSelectedTalents();
+      updateSheet();
+    }
+
+    function removeSelectedTalent(index) {
+      selectedTalents.splice(index, 1);
+      renderSelectedTalents();
+      updateSheet();
+    }
+
+    function renderSelectedTalents() {
+      const container = document.getElementById('selectedTalents');
+      const count = document.getElementById('talentCount');
+      if (!container || !count) return;
+
+      container.innerHTML = '';
+      count.innerText = selectedTalents.length;
+
+      selectedTalents.forEach(function(talent, index) {
+        const card = document.createElement('div');
+        card.className = 'talent-card';
+
+        const title = document.createElement('h3');
+        title.textContent = talent.name;
+        card.appendChild(title);
+
+        const prereq = document.createElement('div');
+        prereq.className = 'talent-meta';
+        const prereqLabel = document.createElement('strong');
+        prereqLabel.textContent = 'Prerequisites: ';
+        prereq.appendChild(prereqLabel);
+        prereq.appendChild(document.createTextNode(talent.prerequisites));
+        card.appendChild(prereq);
+
+        const meta = document.createElement('div');
+        meta.className = 'talent-meta';
+        meta.appendChild(document.createTextNode('Range: ' + talent.range + ' | AP: ' + talent.ap + ' | Activation: ' + talent.activation + ' | Upkeep: ' + talent.upkeep));
+        card.appendChild(meta);
+
+        const effect = document.createElement('p');
+        effect.textContent = talent.effect;
+        card.appendChild(effect);
+
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.textContent = 'Remove';
+        removeButton.addEventListener('click', function() {
+          removeSelectedTalent(index);
+        });
+        card.appendChild(removeButton);
+
+        container.appendChild(card);
+      });
+    }
+
+
+
+    const SKILLS = [
+      { name: "Arcane Arts", id: "arcaneArts", attribute: "intellect", label: "Arcane Arts" },
+      { name: "Combat Arts", id: "combatArts", attribute: "brawn", label: "Combat Arts (Brawn)" },
+      { name: "Combat Arts", id: "combatArts", attribute: "coordination", label: "Combat Arts (Coordination)" },
+      { name: "Divine Arts", id: "divineArts", attribute: "will", label: "Divine Arts" },
+      { name: "Awareness", id: "awareness", attribute: "reasoning", label: "Awareness" },
+      { name: "Bureaucracy", id: "bureaucracy", attribute: "reasoning", label: "Bureaucracy" },
+      { name: "Carousing", id: "carousing", attribute: "will", label: "Carousing" },
+      { name: "Contacts", id: "contactsSkill", attribute: "reasoning", label: "Contacts" },
+      { name: "Crafting", id: "crafting", attribute: "intellect", label: "Crafting" },
+      { name: "Deceit", id: "deceit", attribute: "intellect", label: "Deceit" },
+      { name: "Diplomacy", id: "diplomacy", attribute: "reasoning", label: "Diplomacy" },
+      { name: "Handle Animal", id: "handleAnimal", attribute: "will", label: "Handle Animal" },
+      { name: "Healing", id: "healing", attribute: "reasoning", label: "Healing" },
+      { name: "History", id: "history", attribute: "intellect", label: "History" },
+      { name: "Insight", id: "insight", attribute: "will", label: "Insight" },
+      { name: "Intimidation", id: "intimidation", attribute: "will", label: "Intimidation" },
+      { name: "Investigation", id: "investigation", attribute: "reasoning", label: "Investigation" },
+      { name: "Nature", id: "nature", attribute: "reasoning", label: "Nature" },
+      { name: "Navigation", id: "navigation", attribute: "reasoning", label: "Navigation" },
+      { name: "Performance", id: "performance", attribute: "power", label: "Performance" },
+      { name: "Physical Training", id: "physicalTraining", attribute: "brawn", label: "Physical Training (Brawn)" },
+      { name: "Physical Training", id: "physicalTraining", attribute: "coordination", label: "Physical Training (Coordination)" },
+      { name: "Ride", id: "ride", attribute: "coordination", label: "Ride" },
+      { name: "Skullduggery", id: "skullduggery", attribute: "coordination", label: "Skullduggery" },
+      { name: "Stealth", id: "stealth", attribute: "coordination", label: "Stealth" },
+      { name: "Survival", id: "survival", attribute: "reasoning", label: "Survival" },
+      { name: "Trading", id: "trading", attribute: "intellect", label: "Trading" }
+    ];
+
+    const UNIQUE_SKILLS = [
+      { name: "Arcane Arts", id: "arcaneArts" },
+      { name: "Combat Arts", id: "combatArts" },
+      { name: "Divine Arts", id: "divineArts" },
+      { name: "Awareness", id: "awareness" },
+      { name: "Bureaucracy", id: "bureaucracy" },
+      { name: "Carousing", id: "carousing" },
+      { name: "Contacts", id: "contactsSkill" },
+      { name: "Crafting", id: "crafting" },
+      { name: "Deceit", id: "deceit" },
+      { name: "Diplomacy", id: "diplomacy" },
+      { name: "Handle Animal", id: "handleAnimal" },
+      { name: "Healing", id: "healing" },
+      { name: "History", id: "history" },
+      { name: "Insight", id: "insight" },
+      { name: "Intimidation", id: "intimidation" },
+      { name: "Investigation", id: "investigation" },
+      { name: "Nature", id: "nature" },
+      { name: "Navigation", id: "navigation" },
+      { name: "Performance", id: "performance" },
+      { name: "Physical Training", id: "physicalTraining" },
+      { name: "Ride", id: "ride" },
+      { name: "Skullduggery", id: "skullduggery" },
+      { name: "Stealth", id: "stealth" },
+      { name: "Survival", id: "survival" },
+      { name: "Trading", id: "trading" }
+    ];
+
+    const ATTRIBUTE_LABELS = {
+      brawn: "Brawn",
+      coordination: "Coordination",
+      intellect: "Intellect",
+      reasoning: "Reasoning",
+      will: "Will",
+      power: "Power"
+    };
+
+    function renderSkillRanks() {
+      const grid = document.getElementById('skillRankGrid');
+      grid.innerHTML = '';
+
+      UNIQUE_SKILLS.forEach(function(skill) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `
+          <label>${skill.name}</label>
+          <input id="${skill.id}" type="number" min="0" max="5" value="0" onchange="updateSheet()" />
+        `;
+        grid.appendChild(wrapper);
+      });
+
+      document.getElementById('combatArts').value = 1;
+    }
+
+    function renderSkillRolls() {
+      const list = document.getElementById('skillRollList');
+      list.innerHTML = '';
+
+      SKILLS.forEach(function(skill) {
+        const row = document.createElement('div');
+        row.className = 'skill-row';
+        row.innerHTML = `
+          <div>
+            <strong>${skill.label}</strong>
+            <div id="${skill.id}_${skill.attribute}_pool" class="muted">Pool: 0d10</div>
+            <div class="muted">${ATTRIBUTE_LABELS[skill.attribute]} + ${skill.name}</div>
+          </div>
+          <button onclick="rollSkill('${skill.label}', '${skill.attribute}', '${skill.id}')">Roll</button>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    function getNumber(id) {
+      return Number(document.getElementById(id).value || 0);
+    }
+
+    function d10() {
+      return Math.floor(Math.random() * 10) + 1;
+    }
+
+    function createDie(value) {
+      const div = document.createElement('div');
+      div.className = 'dice';
+
+      if (value >= 6) div.classList.add('success');
+      if (value === 10) div.classList.add('ten');
+      if (value === 1) div.classList.add('one');
+
+      div.innerText = value;
+      return div;
+    }
+
+    function rollSkill(label, attributeId, skillId) {
+      const attribute = getNumber(attributeId);
+      const skillRank = getNumber(skillId);
+      const pool = attribute + skillRank;
+      const trained = skillRank > 0;
+
+      rollDicePool(label, pool, trained);
+    }
+
+    function rollDicePool(label, pool, trained = true) {
+      const dicePanel = document.getElementById('dicePanel');
+      const diceResults = document.getElementById('diceResults');
+      const explodedResults = document.getElementById('explodedResults');
+
+      diceResults.innerHTML = '';
+      explodedResults.innerHTML = '';
+
+      const rolls = [];
+
+      for (let i = 0; i < pool; i++) {
+        rolls.push(d10());
+      }
+
+      let successes = 0;
+      let ones = 0;
+      let tens = 0;
+
+      rolls.forEach(function(roll) {
+        if (roll >= 6) successes++;
+        if (roll === 1) ones++;
+        if (roll === 10) tens++;
+
+        diceResults.appendChild(createDie(roll));
+      });
+
+      let explodeTens = tens;
+
+      if (ones > 0 && tens > 0) {
+        const cancel = confirm('Use one natural 10 to cancel one natural 1?');
+
+        if (cancel) {
+          explodeTens--;
+          ones--;
+          successes--;
+        }
+      }
+
+      const exploded = [];
+
+      if (trained) {
+        while (explodeTens > 0) {
+          const roll = d10();
+          exploded.push(roll);
+
+          if (roll >= 6) successes++;
+          if (roll === 10) explodeTens++;
+
+          explodeTens--;
+        }
+      }
+
+      exploded.forEach(function(roll) {
+        explodedResults.appendChild(createDie(roll));
+      });
+
+      document.getElementById('rollLabel').innerText = label;
+      document.getElementById('rollPool').innerText = pool + 'd10' + (trained ? ' trained' : ' untrained');
+      document.getElementById('successes').innerText = successes;
+      document.getElementById('tenCount').innerText = tens;
+      document.getElementById('oneCount').innerText = ones;
+
+      if (tens >= 5) {
+        document.getElementById('criticalType').innerText = 'Major';
+      } else if (tens > 0) {
+        document.getElementById('criticalType').innerText = 'Minor';
+      } else {
+        document.getElementById('criticalType').innerText = 'None';
+      }
+
+      dicePanel.classList.remove('hidden');
+    }
+
+
+
+    const SAVE_KEY = "ho5a_character_manager_save_v1";
+
+    function collectCharacterData() {
+      const data = {
+        version: 1,
+        savedAt: new Date().toISOString(),
+        identity: {
+          name: document.getElementById('charName')?.value || "",
+          culture: document.getElementById('culture')?.value || ""
+        },
+        attributes: {
+          brawn: getNumber('brawn'),
+          coordination: getNumber('coordination'),
+          intellect: getNumber('intellect'),
+          reasoning: getNumber('reasoning'),
+          will: getNumber('will'),
+          power: getNumber('power')
+        },
+        skills: {},
+        selectedTalentNames: (selectedTalents || []).map(function(talent) { return talent.name; }),
+        actionPoints: {
+          max: getNumber('actionPoints'),
+          current: currentAP
+        }
+      };
+
+      UNIQUE_SKILLS.forEach(function(skill) {
+        data.skills[skill.id] = getNumber(skill.id);
+      });
+
+      return data;
+    }
+
+    function applyCharacterData(data) {
+      if (!data || typeof data !== 'object') return;
+
+      if (data.identity) {
+        if (document.getElementById('charName')) {
+          document.getElementById('charName').value = data.identity.name || "";
+        }
+
+        if (document.getElementById('culture') && data.identity.culture) {
+          document.getElementById('culture').value = data.identity.culture;
+        }
+      }
+
+      if (data.attributes) {
+        Object.keys(data.attributes).forEach(function(key) {
+          const input = document.getElementById(key);
+          if (input) input.value = data.attributes[key];
+        });
+      }
+
+      if (data.skills) {
+        Object.keys(data.skills).forEach(function(key) {
+          const input = document.getElementById(key);
+          if (input) input.value = data.skills[key];
+        });
+      }
+
+      if (Array.isArray(data.selectedTalentNames)) {
+        selectedTalents = data.selectedTalentNames.map(function(name) {
+          return TALENTS.find(function(talent) {
+            return talent.name === name;
+          });
+        }).filter(Boolean);
+      } else if (Array.isArray(data.selectedTalents)) {
+        selectedTalents = data.selectedTalents.map(function(savedTalent) {
+          return TALENTS.find(function(talent) {
+            return talent.name === savedTalent.name;
+          }) || savedTalent;
+        });
+      } else {
+        selectedTalents = [];
+      }
+
+      if (data.actionPoints) {
+        if (document.getElementById('actionPoints')) {
+          document.getElementById('actionPoints').value = data.actionPoints.max || 5;
+        }
+        currentAP = Number(data.actionPoints.current ?? data.actionPoints.max ?? 5);
+      } else {
+        currentAP = getMaxAP();
+      }
+
+      renderTalentPicker();
+      renderSelectedTalents();
+      updateSheet();
+    }
+
+    function setSaveStatus(message) {
+      const status = document.getElementById('saveStatus');
+      if (status) status.innerText = message;
+    }
+
+    function saveCharacterToBrowser() {
+      const data = collectCharacterData();
+      localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+      setSaveStatus("Saved: " + new Date().toLocaleString());
+    }
+
+    function loadCharacterFromBrowser() {
+      const raw = localStorage.getItem(SAVE_KEY);
+
+      if (!raw) {
+        setSaveStatus("No saved character found.");
+        return;
+      }
+
+      try {
+        const data = JSON.parse(raw);
+        applyCharacterData(data);
+        setSaveStatus("Loaded saved character.");
+      } catch (error) {
+        console.error(error);
+        setSaveStatus("Saved character could not be loaded.");
+      }
+    }
+
+    function exportCharacterJson() {
+      const data = collectCharacterData();
+      const name = (data.identity.name || "ho5a_character").replace(/\s+/g, "_").toLowerCase();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = name + ".json";
+      link.click();
+      URL.revokeObjectURL(url);
+      setSaveStatus("Exported JSON.");
+    }
+
+    function importCharacterJson(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = function(loadEvent) {
+        try {
+          const data = JSON.parse(loadEvent.target.result);
+          applyCharacterData(data);
+          setSaveStatus("Imported JSON.");
+        } catch (error) {
+          console.error(error);
+          setSaveStatus("Import failed. Choose a valid character JSON file.");
+        }
+
+        event.target.value = "";
+      };
+
+      reader.readAsText(file);
+    }
+
+    function clearCharacterSheet() {
+      const confirmClear = confirm("Clear this character sheet? This will not delete exported JSON files.");
+      if (!confirmClear) return;
+
+      localStorage.removeItem(SAVE_KEY);
+
+      document.getElementById('charName').value = "";
+      document.getElementById('culture').value = "Human";
+
+      ["brawn", "coordination", "intellect", "reasoning", "will", "power"].forEach(function(id) {
+        document.getElementById(id).value = 4;
+      });
+
+      UNIQUE_SKILLS.forEach(function(skill) {
+        const input = document.getElementById(skill.id);
+        if (input) input.value = 0;
+      });
+
+      const combatArts = document.getElementById('combatArts');
+      if (combatArts) combatArts.value = 1;
+
+      selectedTalents = [];
+      document.getElementById('actionPoints').value = 5;
+      currentAP = 5;
+
+      renderTalentPicker();
+      renderSelectedTalents();
+      updateSheet();
+      setSaveStatus("Character cleared.");
+    }
+
+    let currentAP = 5;
+    let apLog = [];
+
+    function getMaxAP() {
+      return getNumber('actionPoints') + getPassiveTalentBonus('Action Point Reserve', 1);
+    }
+
+    function syncCurrentAPToMax() {
+      currentAP = getMaxAP();
+      apLog = [];
+      updateSheet();
+    }
+
+    function spendAP(cost, label) {
+      const maxAP = getMaxAP();
+
+      if (currentAP > maxAP) {
+        currentAP = maxAP;
+      }
+
+      if (currentAP < cost) {
+        document.getElementById('apWarning').innerText = 'Not enough AP for ' + label + '.';
+        updateAPDisplay();
+        return;
+      }
+
+      currentAP -= cost;
+      apLog.unshift(label + ' spent ' + cost + ' AP');
+
+      if (apLog.length > 5) {
+        apLog = apLog.slice(0, 5);
+      }
+
+      document.getElementById('apWarning').innerText = '';
+      updateAPDisplay();
+    }
+
+    function resetAP() {
+      currentAP = getMaxAP();
+      apLog = [];
+      document.getElementById('apWarning').innerText = '';
+      updateAPDisplay();
+    }
+
+    function updateAPDisplay() {
+      const maxAP = getMaxAP();
+      const spent = Math.max(0, maxAP - currentAP);
+
+      document.getElementById('currentAPDisplay').innerText = currentAP;
+      document.getElementById('movementRemaining').innerText = (currentAP * getMovementPerAP()) + ' sq';
+      document.getElementById('apSpentDisplay').innerText = spent;
+      document.getElementById('apLog').innerText = apLog.length ? 'Recent: ' + apLog.join(' | ') : '';
+    }
+
+    function updateSheet() {
+      const brawn = getNumber('brawn');
+      const coordination = getNumber('coordination');
+      const intellect = getNumber('intellect');
+      const reasoning = getNumber('reasoning');
+      const will = getNumber('will');
+      const combatArts = getNumber('combatArts');
+      const arcaneArts = getNumber('arcaneArts');
+      const divineArts = getNumber('divineArts');
+      const awareness = getNumber('awareness');
+      const physicalTraining = getNumber('physicalTraining');
+      const insight = getNumber('insight');
+
+      document.getElementById('hp').innerText = getMaxHP();
+      document.getElementById('slots').innerText = getGearSlots() + ' / 30';
+      document.getElementById('moveSpeed').innerText = getMovementPerAP();
+      document.getElementById('arcaneSP').innerText = getArcaneSP();
+      document.getElementById('divineSP').innerText = getDivineSP();
+      document.getElementById('kiPoints').innerText = getKiPoints();
+
+      SKILLS.forEach(function(skill) {
+        const poolElement = document.getElementById(skill.id + '_' + skill.attribute + '_pool');
+        if (!poolElement) return;
+
+        const pool = getNumber(skill.attribute) + getNumber(skill.id);
+        poolElement.innerText = 'Pool: ' + pool + 'd10';
+      });
+
+      document.getElementById('prEndure').innerText = (brawn + physicalTraining) + 'd10';
+      document.getElementById('prAvoid').innerText = (coordination + physicalTraining) + 'd10';
+      document.getElementById('mrResolve').innerText = (will + insight) + 'd10';
+      updateAPDisplay();
+    }
+
+    renderSkillRanks();
+    renderSkillRolls();
+    renderTalentPicker();
+    renderSelectedTalents();
+    currentAP = getMaxAP();
+    updateSheet();
+  </script>
+</body>
+</html>
